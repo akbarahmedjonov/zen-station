@@ -1,0 +1,15 @@
+{
+  "manifest_version": 3,
+  "name": "ZenStation",
+  "version": "1.0",
+  "description": "A cozy startpage with bookmarks, search, and focus timer",
+  "permissions": ["storage"],
+  "chrome_url_overrides": {
+    "newtab": "index.html"
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "akbarahmedjonovdev@gmail.com"
+    }
+  }
+}
