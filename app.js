@@ -48,6 +48,36 @@ let timerInterval = null;
 let timerRunning = false;
 let timerSeconds = 25 * 60;
 let isBreak = false;
+let undoData = null;
+let undoTimeout = null;
+
+function showNotification(message, undoCallback) {
+  clearTimeout(undoTimeout);
+  const notification = document.getElementById('notification');
+  const notificationText = document.getElementById('notificationText');
+  
+  undoData = { callback: undoCallback };
+  notificationText.textContent = message;
+  notification.classList.add('visible');
+  
+  undoTimeout = setTimeout(() => {
+    notification.classList.remove('visible');
+    undoData = null;
+  }, 5000);
+}
+
+function hideNotification() {
+  document.getElementById('notification').classList.remove('visible');
+  clearTimeout(undoTimeout);
+  undoData = null;
+}
+
+function undo() {
+  if (undoData && undoData.callback) {
+    undoData.callback();
+    hideNotification();
+  }
+}
 
 function loadTheme() {
   try {
@@ -286,9 +316,18 @@ function saveBookmark() {
 }
 
 function removeBookmark(index) {
-  data.groups[data.activeTab].bookmarks.splice(index, 1);
+  const bookmark = data.groups[data.activeTab].bookmarks[index];
+  const groupName = data.activeTab;
+  
+  data.groups[groupName].bookmarks.splice(index, 1);
   saveData();
   renderBookmarks();
+  
+  showNotification('Bookmark deleted', () => {
+    data.groups[groupName].bookmarks.splice(index, 0, bookmark);
+    saveData();
+    renderBookmarks();
+  });
 }
 
 function openAddGroupModal() {
@@ -311,11 +350,26 @@ function saveGroup() {
 
 function removeGroup(group) {
   if (Object.keys(data.groups).length > 1) {
+    const groupData = data.groups[group];
+    const wasActive = data.activeTab === group;
+    
     delete data.groups[group];
-    data.activeTab = Object.keys(data.groups)[0];
+    
+    if (wasActive) {
+      data.activeTab = Object.keys(data.groups)[0];
+    }
+    
     saveData();
     renderTabs();
     renderBookmarks();
+    
+    showNotification('Group deleted', () => {
+      data.groups[group] = groupData;
+      if (wasActive) data.activeTab = group;
+      saveData();
+      renderTabs();
+      renderBookmarks();
+    });
   }
 }
 
@@ -534,5 +588,7 @@ document.getElementById('resetTheme').addEventListener('click', () => {
   resetTheme();
   document.getElementById('themeEditor').classList.remove('visible');
 });
+
+document.getElementById('undoBtn').addEventListener('click', undo);
 
 loadTheme();

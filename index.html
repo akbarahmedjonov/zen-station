@@ -39,6 +39,19 @@
       .content-area {
         width: 100%;
         max-width: 800px;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 1rem;
+      }
+
+      .bookmarks {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 1.5rem;
+        width: 100%;
+        max-width: 1000px;
+        position: relative;
       }
 
       .theme-editor-btn {
@@ -74,6 +87,36 @@
 
       .theme-editor.visible {
         display: flex;
+      }
+
+      .notification {
+        position: fixed;
+        bottom: 2rem;
+        left: 50%;
+        transform: translateX(-50%);
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 0.8rem 1rem;
+        display: none;
+        align-items: center;
+        gap: 1rem;
+        z-index: 200;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      }
+
+      .notification.visible {
+        display: flex;
+      }
+
+      .notification .btn {
+        background: var(--accent);
+        color: var(--bg);
+        border: none;
+        padding: 0.3rem 0.8rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
       }
 
       .theme-editor h4 {
@@ -256,13 +299,13 @@
       }
 
       .bookmarks {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 1rem;
-        width: 100%;
-        max-width: 600px;
-        position: relative;
+        display: flex;
+        flex-wrap: wrap;
         justify-content: center;
+        gap: 1.5rem;
+        width: 100%;
+        max-width: 800px;
+        position: relative;
       }
 
       .bookmark {
@@ -273,6 +316,9 @@
         padding: 1rem;
         background: var(--card);
         border-radius: 10px;
+        width: calc(25% - 1.5rem);
+        min-width: 100px;
+        max-width: 140px;
         text-decoration: none;
         color: var(--fg);
         transition: all 0.2s;
@@ -344,6 +390,10 @@
         color: var(--muted);
         cursor: pointer;
         transition: all 0.2s;
+        width: calc(25% - 1.5rem);
+        min-width: 100px;
+        max-width: 140px;
+      }
         min-height: 85px;
       }
 
@@ -586,6 +636,11 @@
       <button class="btn" id="resetTheme">Reset</button>
     </div>
 
+    <div class="notification" id="notification">
+      <span id="notificationText"></span>
+      <button class="btn" id="undoBtn">Undo</button>
+    </div>
+
     <div class="search-container">
       <input type="text" class="search-input" id="search" placeholder="Search... (s)" autocomplete="off" />
     </div>
@@ -594,8 +649,9 @@
       <div class="tabs" id="tabs">
         <button class="add-tab-btn" id="addTabBtn">+</button>
       </div>
-      <div class="bookmarks" id="bookmarks"></div>
     </div>
+
+    <div class="bookmarks" id="bookmarks"></div>
 
     <div class="hint"><kbd>s</kbd> Search &nbsp; <kbd>t</kbd> Timer &nbsp; <kbd>,</kbd> Settings &nbsp; <kbd>1-9</kbd> Open &nbsp; <kbd>Del</kbd> Remove</div>
 
