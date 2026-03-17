@@ -54,8 +54,8 @@ function loadTheme() {
     const saved = localStorage.getItem(THEME_KEY);
     if (saved) {
       const theme = JSON.parse(saved);
-      document.documentElement.style.setProperty('--accent', theme.accent);
-      document.getElementById('accentColorPicker').value = theme.accent;
+      document.documentElement.style.setProperty('--accent', theme.accent || DEFAULT_ACCENT);
+      document.getElementById('accentColorPicker').value = theme.accent || DEFAULT_ACCENT;
     }
   } catch (e) {}
 }
@@ -172,37 +172,24 @@ function switchTab(tab) {
 
 let editingGroupName = null;
 let selectedGroupIcon = 'bi-folder';
+let selectedIcon = 'bi-link-45deg';
 
-function removeBookmark(index) {
-  data.groups[data.activeTab].bookmarks.splice(index, 1);
-  saveData();
-  renderBookmarks();
-}
-
-function openAddGroupModal() {
-  editingGroupName = null;
-  selectedGroupIcon = 'bi-folder';
-  document.getElementById('addGroupModal').classList.add('visible');
-  document.getElementById('groupName').value = '';
-  document.getElementById('groupIconPreview').className = 'bi bi-folder';
-  document.getElementById('groupIconPicker').classList.remove('visible');
-  document.getElementById('groupIconSearch').style.display = 'none';
-  document.querySelector('#addGroupModal h3').textContent = 'Add Group';
-  document.getElementById('groupName').focus();
-  renderGroupIconPicker();
-}
-
-function openEditGroupModal(group) {
-  editingGroupName = group;
-  selectedGroupIcon = data.groups[group].icon || 'bi-folder';
-  document.getElementById('addGroupModal').classList.add('visible');
-  document.getElementById('groupName').value = group;
-  document.getElementById('groupIconPreview').className = `bi ${selectedGroupIcon}`;
-  document.getElementById('groupIconPicker').classList.remove('visible');
-  document.getElementById('groupIconSearch').style.display = 'none';
-  document.querySelector('#addGroupModal h3').textContent = 'Edit Group';
-  renderGroupIconPicker();
-  document.getElementById('groupName').focus();
+function renderIconPicker(filter = '') {
+  const picker = document.getElementById('iconPicker');
+  const filtered = ICONS.filter(i => i.toLowerCase().includes(filter.toLowerCase()));
+  picker.innerHTML = filtered.map(icon => `
+    <span class="icon-option ${icon === selectedIcon ? 'selected' : ''}" data-icon="${icon}">
+      <i class="bi ${icon}"></i>
+    </span>
+  `).join('');
+  
+  picker.querySelectorAll('.icon-option').forEach(opt => {
+    opt.addEventListener('click', () => {
+      selectedIcon = opt.dataset.icon;
+      document.getElementById('bmIconPreview').className = `bi ${selectedIcon}`;
+      renderIconPicker(document.getElementById('iconSearch').value);
+    });
+  });
 }
 
 function renderGroupIconPicker(filter = '') {
@@ -369,7 +356,7 @@ function updateTimerDisplay() {
   const s = timerSeconds % 60;
   document.getElementById('timerTime').textContent = `${m < 10 ? '0' : ''}${m}:${s < 10 ? '0' : ''}${s}`;
   document.getElementById('timerLabel').textContent = isBreak ? 'Break' : 'Focus';
-  document.getElementById('timerTime').style.color = isBreak ? '#98c379' : '#e5c07b';
+  document.getElementById('timerTime').style.color = isBreak ? 'var(--accent)' : 'var(--accent)';
 }
 
 function toggleTimer() {
@@ -444,7 +431,10 @@ document.addEventListener('keydown', e => {
     if (e.key === 'Escape') e.target.blur();
     return;
   }
-  if (e.key === 's') document.getElementById('search').focus();
+  if (e.key === 's') {
+    e.preventDefault();
+    document.getElementById('search').focus();
+  }
   if (e.key === 't') document.getElementById('timerBar').classList.toggle('visible');
   if (e.key === ',') openSettingsModal();
   if (e.key === 'Escape') {
@@ -480,7 +470,6 @@ window.saveSettings = saveSettings;
 
 document.getElementById('timerToggle').addEventListener('click', toggleTimer);
 document.getElementById('timerReset').addEventListener('click', resetTimer);
-document.getElementById('timerSettings').addEventListener('click', openSettingsModal);
 
 document.querySelectorAll('.modal .btn-cancel, .modal .btn-save').forEach(btn => {
   btn.addEventListener('click', e => {
