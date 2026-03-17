@@ -32,6 +32,78 @@
         padding: 3rem 1rem;
       }
 
+      .theme-editor-btn {
+        position: fixed;
+        top: 1rem;
+        left: 1rem;
+        background: transparent;
+        border: none;
+        color: var(--muted);
+        font-size: 1.2rem;
+        cursor: pointer;
+        opacity: 0.5;
+        transition: opacity 0.2s;
+        z-index: 100;
+      }
+
+      .theme-editor-btn:hover {
+        opacity: 1;
+        color: var(--accent);
+      }
+
+      .theme-editor {
+        position: fixed;
+        top: 3rem;
+        left: 1rem;
+        background: var(--bg);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 1rem;
+        display: none;
+        flex-direction: column;
+        gap: 0.5rem;
+        z-index: 100;
+      }
+
+      .theme-editor.visible {
+        display: flex;
+      }
+
+      .theme-editor h4 {
+        font-size: 0.85rem;
+        color: var(--fg);
+        margin-bottom: 0.3rem;
+      }
+
+      .theme-editor label {
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+
+      .theme-editor input[type="color"] {
+        width: 100%;
+        height: 30px;
+        border: 1px solid var(--border);
+        border-radius: 4px;
+        cursor: pointer;
+        background: var(--bg);
+      }
+
+      .theme-editor .btn {
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      .theme-editor .btn:hover {
+        border-color: var(--muted);
+        color: var(--fg);
+      }
+
       .clock {
         font-family: "JetBrains Mono", monospace;
         font-size: 4rem;
@@ -129,6 +201,20 @@
       .tab .remove:hover {
         opacity: 1;
         color: var(--danger);
+      }
+
+      .tab .edit {
+        font-size: 0.7rem;
+        opacity: 0.7;
+        margin-left: 0.2rem;
+      }
+
+      .tab .edit:hover {
+        opacity: 1;
+      }
+
+      .tab .tab-name {
+        margin-left: 0.2rem;
       }
 
       .add-tab-btn {
@@ -437,6 +523,21 @@
         font-size: 1.5rem;
         color: var(--accent);
       }
+
+      #toggleGroupIconPicker {
+        background: transparent;
+        border: 1px solid var(--border);
+        color: var(--muted);
+        padding: 0.3rem 0.8rem;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 0.8rem;
+      }
+
+      #toggleGroupIconPicker:hover {
+        border-color: var(--muted);
+        color: var(--fg);
+      }
     </style>
   </head>
 
@@ -449,6 +550,15 @@
         <button class="btn" id="timerReset"><i class="bi bi-arrow-counterclockwise"></i></button>
         <button class="btn" id="timerSettings"><i class="bi bi-gear"></i></button>
       </div>
+    </div>
+
+    <button class="theme-editor-btn" id="toggleThemeEditor" title="Theme Settings"><i class="bi bi-palette"></i></button>
+
+    <div class="theme-editor" id="themeEditor">
+      <h4>Theme Editor</h4>
+      <label>Accent Color</label>
+      <input type="color" id="accentColorPicker" value="#e5c07b" />
+      <button class="btn" id="resetTheme">Reset</button>
     </div>
 
     <div class="clock" id="clock">00:00</div>
@@ -487,6 +597,12 @@
     <div class="modal-overlay" id="addGroupModal">
       <div class="modal">
         <h3>Add Group</h3>
+        <div class="icon-preview">
+          <i class="bi bi-folder" id="groupIconPreview"></i>
+          <button class="btn" id="toggleGroupIconPicker">Change Icon</button>
+        </div>
+        <input type="text" id="groupIconSearch" class="icon-picker-search" placeholder="Search icons..." style="display:none" />
+        <div class="icon-picker" id="groupIconPicker"></div>
         <input type="text" id="groupName" placeholder="Group name" />
         <div class="modal-buttons">
           <button class="btn btn-cancel">Cancel</button>
