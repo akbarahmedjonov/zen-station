@@ -2,7 +2,7 @@
 
 A cozy, minimalist startpage for your browser with bookmarks, search, Pomodoro timer, to-do list, and theme customization.
 
-![ZenStation Preview](screenshots/accent%20color%20switcher.png)
+![ZenStation Preview](screenshots/general-showcase.png)
 
 ## Features
 
