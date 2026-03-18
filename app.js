@@ -8,12 +8,24 @@ const DEFAULT_DATA = {
       { name: 'Stack Overflow', url: 'https://stackoverflow.com', icon: 'bi-stack-overflow' },
       { name: 'MDN', url: 'https://developer.mozilla.org', icon: 'bi-file-earmark-code' },
       { name: 'npm', url: 'https://npmjs.com', icon: 'bi-box-seam' },
+      { name: 'Vercel', url: 'https://vercel.com', icon: 'bi-cloud' },
+      { name: 'Netlify', url: 'https://netlify.com', icon: 'bi-cloud-upload' },
+      { name: 'Docker', url: 'https://docker.com', icon: 'bi-box-seam' },
+      { name: 'GitLab', url: 'https://gitlab.com', icon: 'bi-git' },
+    ]},
+    ai: { icon: 'bi-robot', bookmarks: [
+      { name: 'Perplexity', url: 'https://perplexity.ai', icon: 'bi-search' },
+      { name: 'Grok', url: 'https://grok.com', icon: 'bi-stars' },
+      { name: 'ChatGPT', url: 'https://chat.openai.com', icon: 'bi-chat-dots' },
+      { name: 'Claude', url: 'https://claude.ai', icon: 'bi-person' },
     ]},
     education: { icon: 'bi-book', bookmarks: [
       { name: 'Khan Academy', url: 'https://khanacademy.org', icon: 'bi-book' },
       { name: 'Coursera', url: 'https://coursera.org', icon: 'bi-mortarboard' },
       { name: 'edX', url: 'https://edx.org', icon: 'bi-journal-code' },
       { name: 'Duolingo', url: 'https://duolingo.com', icon: 'bi-translate' },
+      { name: 'Wayground', url: 'https://wayground.com', icon: 'bi-geo-alt' },
+      { name: 'Nearpod', url: 'https://nearpod.com', icon: 'bi-collection-play' },
     ]},
     social: { icon: 'bi-people', bookmarks: [
       { name: 'Reddit', url: 'https://reddit.com', icon: 'bi-reddit' },
@@ -50,25 +62,47 @@ let timerSeconds = 25 * 60;
 let isBreak = false;
 let undoData = null;
 let undoTimeout = null;
+let countdownInterval = null;
 
 function showNotification(message, undoCallback) {
   clearTimeout(undoTimeout);
+  clearInterval(countdownInterval);
   const notification = document.getElementById('notification');
   const notificationText = document.getElementById('notificationText');
+  const countdownEl = document.getElementById('notificationCountdown');
   
   undoData = { callback: undoCallback };
   notificationText.textContent = message;
   notification.classList.add('visible');
   
+  let timeLeft = 5;
+  countdownEl.textContent = `(${timeLeft}s)`;
+  
+  countdownInterval = setInterval(() => {
+    timeLeft--;
+    if (timeLeft > 0) {
+      countdownEl.textContent = `(${timeLeft}s)`;
+    } else {
+      countdownEl.textContent = '';
+    }
+  }, 1000);
+  
   undoTimeout = setTimeout(() => {
     notification.classList.remove('visible');
+    clearInterval(countdownInterval);
     undoData = null;
   }, 5000);
 }
 
 function hideNotification() {
-  document.getElementById('notification').classList.remove('visible');
+  const notification = document.getElementById('notification');
+  notification.classList.add('hiding');
+  setTimeout(() => {
+    notification.classList.remove('visible');
+    notification.classList.remove('hiding');
+  }, 300);
   clearTimeout(undoTimeout);
+  clearInterval(countdownInterval);
   undoData = null;
 }
 
@@ -76,6 +110,79 @@ function undo() {
   if (undoData && undoData.callback) {
     undoData.callback();
     hideNotification();
+  }
+}
+
+function toggleWithAnimation(elementId) {
+  const el = document.getElementById(elementId);
+  if (el.classList.contains('visible')) {
+    el.classList.add('hiding');
+    setTimeout(() => {
+      el.classList.remove('visible');
+      el.classList.remove('hiding');
+    }, 300);
+  } else {
+    el.classList.add('visible');
+  }
+}
+
+const TODO_KEY = 'startpage_todos';
+let todos = [];
+
+function loadTodos() {
+  try {
+    const saved = localStorage.getItem(TODO_KEY);
+    if (saved) todos = JSON.parse(saved);
+  } catch (e) { todos = []; }
+  renderTodos();
+}
+
+function saveTodos() {
+  localStorage.setItem(TODO_KEY, JSON.stringify(todos));
+}
+
+function renderTodos() {
+  const list = document.getElementById('todoItems');
+  list.innerHTML = todos.map((t, i) => `
+    <li class="${t.completed ? 'completed' : ''}">
+      <input type="checkbox" ${t.completed ? 'checked' : ''} data-index="${i}" />
+      <span>${t.text}</span>
+      <button class="delete-todo" data-index="${i}">×</button>
+    </li>
+  `).join('');
+  
+  list.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', e => {
+      const idx = parseInt(e.target.dataset.index);
+      todos[idx].completed = e.target.checked;
+      saveTodos();
+      renderTodos();
+    });
+  });
+  
+  list.querySelectorAll('.delete-todo').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const idx = parseInt(btn.dataset.index);
+      const removed = todos.splice(idx, 1)[0];
+      saveTodos();
+      renderTodos();
+      showNotification('Task deleted', () => {
+        todos.splice(idx, 0, removed);
+        saveTodos();
+        renderTodos();
+      });
+    });
+  });
+}
+
+function addTodo() {
+  const input = document.getElementById('todoInput');
+  const text = input.value.trim();
+  if (text) {
+    todos.push({ text, completed: false });
+    saveTodos();
+    renderTodos();
+    input.value = '';
   }
 }
 
@@ -164,7 +271,7 @@ function renderBookmarks() {
   const bookmarks = data.groups[data.activeTab]?.bookmarks || [];
   
   container.innerHTML = bookmarks.map((b, i) => `
-    <a href="${b.url}" class="bookmark" target="_blank" data-bookmark-index="${i}">
+    <a href="${b.url}" class="bookmark" data-bookmark-index="${i}">
       <span class="remove" data-remove-bookmark="${i}">×</span>
       <span class="edit" data-edit-bookmark="${i}">✎</span>
       <i class="bi ${b.icon}"></i>
@@ -489,7 +596,8 @@ document.addEventListener('keydown', e => {
     e.preventDefault();
     document.getElementById('search').focus();
   }
-  if (e.key === 't') document.getElementById('timerBar').classList.toggle('visible');
+  if (e.key === 't') toggleWithAnimation('timerBar');
+  if (e.key === 'd') toggleWithAnimation('todoList');
   if (e.key === ',') openSettingsModal();
   if (e.key === 'Escape') {
     document.querySelectorAll('.modal-overlay.visible').forEach(m => m.classList.remove('visible'));
@@ -497,7 +605,7 @@ document.addEventListener('keydown', e => {
   if (e.key >= '1' && e.key <= '9') {
     const idx = parseInt(e.key) - 1;
     const links = data.groups[data.activeTab].bookmarks;
-    if (links && links[idx]) window.open(links[idx].url, '_blank');
+    if (links && links[idx]) window.open(links[idx].url, '_self');
   }
 });
 
@@ -575,7 +683,7 @@ document.getElementById('groupIconSearch').addEventListener('input', e => {
 });
 
 document.getElementById('toggleThemeEditor').addEventListener('click', () => {
-  document.getElementById('themeEditor').classList.toggle('visible');
+  toggleWithAnimation('themeEditor');
 });
 
 document.getElementById('accentColorPicker').addEventListener('input', e => {
@@ -586,9 +694,20 @@ document.getElementById('accentColorPicker').addEventListener('input', e => {
 
 document.getElementById('resetTheme').addEventListener('click', () => {
   resetTheme();
-  document.getElementById('themeEditor').classList.remove('visible');
+  toggleWithAnimation('themeEditor');
 });
 
 document.getElementById('undoBtn').addEventListener('click', undo);
 
+document.getElementById('toggleTodo').addEventListener('click', () => {
+  toggleWithAnimation('todoList');
+});
+
+document.getElementById('addTodoBtn').addEventListener('click', addTodo);
+
+document.getElementById('todoInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') addTodo();
+});
+
 loadTheme();
+loadTodos();
